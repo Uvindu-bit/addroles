@@ -1,43 +1,89 @@
-using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Identity;
-using System.Threading.Tasks;
+using System;
 using System.Collections.Generic;
-using addroles.Models;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using addroles.Data;
+using addroles.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
-namespace addroles.Controllers
+namespace OLEXOD.Controllers
 {
-    public class AdminController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AdminController : ControllerBase
     {
-        private readonly RoleManager<IdentityRole> roleManager;
+
+        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
-
-
-        public AdminController(RoleManager<IdentityRole> roleManager)
+        private readonly RoleManager<IdentityRole> _roleManager;
+        // private object _context;
+        public AdminController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            RoleManager<IdentityRole> roleManager)
         {
-            this.roleManager = roleManager;
-        }
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        public IActionResult Create()
-        {
-            return View();
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _roleManager = roleManager;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create(ProjectRole role)
+        // POST: http://localhost:5000/api/auth/createrole?role=role
+        [HttpPost("createrole")]
+        public async Task<ActionResult<ApplicationUser>> CreateRole(String role)
         {
-            var roleExist = await roleManager.RoleExistsAsync(role.RoleName);
-            if (!roleExist)
+            if (!await _roleManager.RoleExistsAsync(role))
             {
-                var result = await roleManager.CreateAsync(new IdentityRole(role.RoleName));
+                await _roleManager.CreateAsync(new IdentityRole(role));
             }
-            return View();
+            return CreatedAtAction("CreateRole", new { Role = role });
         }
+
+        [HttpPost("assignrole")]
+        public async Task<ActionResult<ApplicationUser>> AssignRole(string userName, String role)
+        {
+            var user = await _userManager.FindByNameAsync(userName);
+            await _userManager.AddToRoleAsync(user, role);
+            return CreatedAtAction("AssignRole", new { UserId = userName, Role = role });
+        }
+
+        [HttpGet("user/{id}")]
+        public async Task<IActionResult> GetUserBtId(string id)
+        {
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                var roles = await _userManager.GetRolesAsync(user);
+
+                return Ok(roles);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<ApplicationUser>> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            await _userManager.DeleteAsync(user);
+
+            return user;
+        }
+
+        [HttpDelete("userrole/{id}/username/{name}")]
+        public async Task<ActionResult<ApplicationUser>> DeleteUserRole(string id, string name)
+        {
+            var user = await _userManager.FindByNameAsync(name);
+            await _userManager.RemoveFromRoleAsync(user, id);
+
+            return user;
+        }
+
+
     }
 }
