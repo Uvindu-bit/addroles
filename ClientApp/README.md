@@ -13,3 +13,12 @@
 ## Apply to the database
 
     dotnet ef database update
+
+
+            [HttpGet("roles")]
+        public async Task<IActionResult> SignIn(int userid)
+        {
+        var userRoles = await _userManager.GetRolesAsync(user.Id);
+
+            return userRoles;
+        }

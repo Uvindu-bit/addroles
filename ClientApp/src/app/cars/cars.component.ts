@@ -2,13 +2,14 @@ import { Cars } from '../models/cars';
 import { Component, Inject, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router, ActivatedRoute, ParamMap } from '@angular/router';
-import { objectify } from 'tslint/lib/utils';
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
+  selector: 'app-cars',
+  templateUrl: './cars.component.html',
+  styleUrls: ['./cars.component.css']
 })
-export class HomeComponent implements OnInit {
+export class CarsComponent implements OnInit {
+
   private http: HttpClient;
   private baseUrl: string;
   public cars: Cars[];
@@ -20,10 +21,12 @@ export class HomeComponent implements OnInit {
 
   ngOnInit() {
     let self = this;
-    this.http.get<object>(this.baseUrl + 'api/admin/getcurrentuser/upathirana112@gmail.com')
+    this.cars = []
+    this.http.get<Cars[]>(this.baseUrl + 'api/cars')
       .subscribe(
         function (data) {
-          console.log(data);
+          self.cars = data;
+          console.log(self.cars);
         }
       )
   }

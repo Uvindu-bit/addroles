@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
-namespace OLEXOD.Controllers
+namespace addroles.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -43,7 +43,7 @@ namespace OLEXOD.Controllers
         }
 
         [HttpPost("assignrole")]
-        public async Task<ActionResult<ApplicationUser>> AssignRole(string userName, String role)
+        public async Task<ActionResult<Cars>> AssignRole(string userName, String role)
         {
             var user = await _userManager.FindByNameAsync(userName);
             await _userManager.AddToRoleAsync(user, role);
@@ -60,6 +60,19 @@ namespace OLEXOD.Controllers
                 return Ok(roles);
             }
         }
+
+        [HttpGet("getcurrentuser/{email}")]
+        [Authorize]
+        public async Task<IActionResult> GetUserByEmail(string email)
+        {
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                var roles = await _userManager.GetRolesAsync(user);
+                return Ok(roles);
+            }
+        }
+
+
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApplicationUser>> DeleteUser(string id)

@@ -18,5 +18,6 @@ namespace addroles.Data
         {
         }
         public DbSet<addroles.Models.ProjectRole> ProjectRole { get; set; }
+        public DbSet<Cars> Cars { get; set; }
     }
 }
